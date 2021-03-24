@@ -1,5 +1,25 @@
 const express = require('express');
+const dotenv = require('dotenv');
+dotenv.config();
 const app = new express();
+const fs = require('fs');
+
+function getNLUInstance() {
+    let api_key = process.env.API_KEY;
+    let api_url = process.env.API_URL;
+
+    const NaturalLanguageUnderstandingV1 = require('ibm-watson/natural-language-understanding/v1.js');
+    const { IamAuthenticator } = require('ibm-watson/auth');
+
+    const naturalLanguageUnderstanding = new NaturalLanguageUnderstandingV1({
+        version: '2021-03-24',
+        authenticator: new IamAuthenticator({
+            apikey: api_key,
+        }),
+        serviceUrl: api_url,
+    });
+    return naturalLanguageUnderstanding;
+}
 
 app.use(express.static('client'))
 
@@ -11,20 +31,139 @@ app.get("/",(req,res)=>{
   });
 
 app.get("/url/emotion", (req,res) => {
+    let o_nlu = getNLUInstance();
 
-    return res.send({"happy":"90","sad":"10"});
+    const analyzeParams = {
+        'url': req.query.url,
+        'features': {
+            'categories': {
+                'limit': 3
+            },
+            'entities': {
+            'emotion': true,
+            'sentiment': true
+            },
+            'keywords': {
+            'emotion': true,
+            'sentiment': true,
+            'limit': 2,
+            },
+        },
+        "language": "en"
+    };
+
+
+    o_nlu.analyze(analyzeParams)
+    .then(analysisResults => {
+        console.log(JSON.stringify(analysisResults, null, 2));
+    })
+    .catch(err => {
+        console.log('error1:', err);
+    });
 });
 
 app.get("/url/sentiment", (req,res) => {
-    return res.send("url sentiment for "+req.query.url);
+    let o_nlu = getNLUInstance();
+
+    const analyzeParams = {
+        'url': req.query.url,
+        'features': {
+            'categories': {
+                'limit': 3
+            },
+            'entities': {
+            'emotion': true,
+            'sentiment': true
+            },
+            'keywords': {
+            'emotion': true,
+            'sentiment': true,
+            'limit': 2,
+            },
+        },
+        "language": "en"
+    };
+
+
+    o_nlu.analyze(analyzeParams)
+    .then(analysisResults => {
+        try {
+            res.send(analysisResults.result.keywords[0].sentiment.label);
+        }
+        catch (TypeError) {
+            res.send('neutral');
+        }
+    })
+    .catch(err => {
+        console.log('error2:', err);
+    });
 });
 
 app.get("/text/emotion", (req,res) => {
-    return res.send({"happy":"10","sad":"90"});
+    let o_nlu = getNLUInstance();
+
+    const analyzeParams = {
+        'text': req.query.text,
+        'features': {
+            'categories': {
+                'limit': 3
+            },
+            'entities': {
+            'emotion': true,
+            'sentiment': true
+            },
+            'keywords': {
+            'emotion': true,
+            'sentiment': true,
+            'limit': 2,
+            },
+        },
+        "language": "en"
+    };
+
+    o_nlu.analyze(analyzeParams)
+    .then(analysisResults => {
+        console.log(JSON.stringify(analysisResults, null, 2));
+    })
+    .catch(err => {
+        console.log('error3:', err);
+    });
 });
 
 app.get("/text/sentiment", (req,res) => {
-    return res.send("text sentiment for "+req.query.text);
+    let o_nlu = getNLUInstance();
+
+    const analyzeParams = {
+        'text': req.query.text,
+        'features': {
+            'categories': {
+                'limit': 3
+            },
+            'entities': {
+            'emotion': true,
+            'sentiment': true
+            },
+            'keywords': {
+            'emotion': true,
+            'sentiment': true,
+            'limit': 2,
+            },
+        },
+        "language": "en"
+    };
+
+    o_nlu.analyze(analyzeParams)
+    .then(analysisResults => {
+        try {
+            res.send(analysisResults.result.keywords[0].sentiment.label);
+        }
+        catch (TypeError) {
+            res.send('neutral');
+        }
+    })
+    .catch(err => {
+        console.log('error4:', err);
+    });
 });
 
 let server = app.listen(8080, () => {
