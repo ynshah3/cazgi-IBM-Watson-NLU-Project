@@ -52,10 +52,14 @@ app.get("/url/emotion", (req,res) => {
         "language": "en"
     };
 
-
     o_nlu.analyze(analyzeParams)
     .then(analysisResults => {
-        console.log(JSON.stringify(analysisResults, null, 2));
+        try {
+            res.send(analysisResults.result.keywords[0].emotion);
+        }
+        catch (TypeError) {
+            res.send('neutral');
+        }
     })
     .catch(err => {
         console.log('error1:', err);
@@ -124,6 +128,12 @@ app.get("/text/emotion", (req,res) => {
     o_nlu.analyze(analyzeParams)
     .then(analysisResults => {
         console.log(JSON.stringify(analysisResults, null, 2));
+        try {
+            res.send(analysisResults.result.keywords[0].emotion);
+        }
+        catch (TypeError) {
+            res.send('neutral');
+        }
     })
     .catch(err => {
         console.log('error3:', err);
