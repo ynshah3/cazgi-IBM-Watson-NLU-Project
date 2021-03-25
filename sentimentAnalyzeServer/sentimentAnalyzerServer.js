@@ -122,7 +122,6 @@ app.get("/text/emotion", (req,res) => {
 
     o_nlu.analyze(analyzeParams)
     .then(analysisResults => {
-        console.log(JSON.stringify(analysisResults, null, 2));
         res.send(analysisResults.result.keywords[0].emotion);
     })
     .catch(err => {
